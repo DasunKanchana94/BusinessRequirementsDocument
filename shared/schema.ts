@@ -71,7 +71,6 @@ export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   packageId: varchar("package_id").notNull().references(() => packages.id),
   creatorId: varchar("creator_id").notNull().references(() => users.id),
-  clientName: text("client_name").notNull(),
   clientEmail: text("client_email"),
   clientMobile: text("client_mobile").notNull(),
   scheduledAt: timestamp("scheduled_at").notNull(),
