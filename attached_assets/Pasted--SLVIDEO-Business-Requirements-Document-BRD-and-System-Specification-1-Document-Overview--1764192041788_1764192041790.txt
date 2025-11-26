@@ -1,0 +1,212 @@
+# SLVIDEO Business Requirements Document (BRD) and System Specification
+
+## 1. Document Overview
+### 1.1 Purpose
+This Business Requirements Document (BRD) outlines the functional and non-functional requirements for SLVIDEO, a SaaS platform designed for creators and consultants to schedule, book, and conduct paid video calls with clients. SLVIDEO streamlines the process of offering virtual consultations by providing scheduling tools, payment processing with escrow-like holds, customizable booking pages, and seamless video integration. It focuses on video call bookings, differentiating from broader platforms like Stan Store by emphasizing real-time scheduling, session management, and dispute resolution.
+
+The platform enables creators to monetize their expertise through free profile setup, while the SaaS owner (Admin) earns a configurable cut from each transaction. Clients benefit from a frictionless booking experience without mandatory accounts.
+
+This document serves as a blueprint for development on Replit, assuming a full-stack web application using technologies like Node.js/Express for the backend, React for the frontend, MongoDB/PostgreSQL for data storage, and integrations for payments and video calls.
+
+### 1.2 Scope
+- **In Scope:** User registration/profiles, scheduling, package management, customizable booking widgets, payment processing with holds/refunds, admin dashboard, video call integration, basic analytics, notifications.
+- **Out of Scope:** Advanced e-commerce (e.g., physical product sales), in-app chat beyond video, AI transcription of calls, enterprise-level scalability (initially MVP-focused), mobile native apps (web-responsive only).
+- **Assumptions:** 
+  - Development on Replit implies a monolithic or microservices-light architecture; external services (e.g., Stripe, Google Meet) will be integrated via APIs.
+  - Legal compliance (e.g., GDPR, PCI-DSS) is handled via third-party integrations; basic terms of service will be included.
+  - Missed elements from query (e.g., guest client bookings, email notifications, basic analytics) are incorporated for completeness.
+
+### 1.3 Objectives
+- **Business:** Generate revenue via transaction fees (e.g., 10-20% cut configurable by Admin). Achieve 100+ creators in first year.
+- **User (Creators):** Reduce booking friction; increase earnings through easy scheduling and payments.
+- **User (Clients):** Secure, one-click booking and joining.
+- **Admin:** Full oversight, low-maintenance operations.
+
+### 1.4 Stakeholders
+- **SaaS Owner/Admin:** Platform owner.
+- **Creators/Consultants:** Primary users managing profiles and sessions.
+- **Clients/Customers:** End-users booking and attending calls.
+- **Development Team:** Building on Replit.
+
+### 1.5 Version History
+- Version 1.0: Initial draft (November 27, 2025).
+
+## 2. Business Requirements
+### 2.1 High-Level Use Cases
+1. **Creator Onboarding:** Register, create profile, define packages/schedules.
+2. **Client Booking:** Browse packages, select slot, pay (held funds), receive meeting link.
+3. **Session Execution:** Creator joins video call; post-session, funds release.
+4. **Payment & Revenue:** Admin-defined cut; holds for disputes.
+5. **Admin Management:** Monitor creators, handle refunds, configure fees.
+6. **Customization:** Creators embed widgets on their sites; access to recorded content (optional upsell).
+
+### 2.2 Revenue Model
+- Free for creators to join and list.
+- Admin takes percentage (default 15%) or flat fee per transaction, deducted post-hold release.
+- Optional: Premium creator tiers (e.g., $9/month for advanced analytics, custom domains).
+
+### 2.3 Key Metrics for Success
+- Creator sign-ups: 50/month.
+- Booking conversion rate: 20%.
+- Average transaction value: $50.
+- Refund rate: <5%.
+
+## 3. User Roles and Permissions
+| Role       | Key Permissions |
+|------------|-----------------|
+| **Creator** | Register/login, manage profile/packages/schedules, view earnings/analytics, access meeting links, respond to refunds, embed widgets. |
+| **Client**  | Guest or registered: Browse/book sessions, pay, join calls, request refunds. No full account required for booking. |
+| **Admin**   | Full access: View all data, manage creators/users, configure fees, approve/refund transactions, system settings (e.g., integrations). |
+
+## 4. Functional Requirements
+### 4.1 User Authentication & Profiles
+- **Registration/Login:** Email/password, Google OAuth for creators/clients. JWT-based sessions.
+- **Creator Profile:** 
+  - Bio, photo, logos, website URL.
+  - Customizable booking page (widgets for embed on external sites via iframe/JS snippet).
+  - Packages: Define tiers (e.g., 30-min consult $50, 60-min $100) with descriptions, images, recorded content access (upload videos, charge extra).
+- **Client Profile (Optional):** Save bookings, payment methods.
+
+### 4.2 Scheduling & Availability
+- **Calendar Management:** Weekly/monthly view; drag-drop to set available slots (e.g., Mon-Fri 9AM-5PM, 30-min increments).
+- **Unavailable Blocks:** Mark holidays, breaks.
+- **Buffer Times:** Auto-add 5-10 min between sessions (configurable).
+- **Time Zones:** Auto-detect user timezone; support UTC conversion.
+- **Client View:** Real-time availability calendar (integrated with FullCalendar.js or similar).
+
+### 4.3 Booking Flow
+1. Client selects creator/package.
+2. Views available slots (filtered by timezone).
+3. Selects slot, enters details (name, email).
+4. Pays via Stripe (pre-auth hold, not immediate charge).
+5. Receives instant confirmation email/SMS with meeting link.
+6. Creator notified via email/dashboard.
+
+### 4.4 Payment Processing
+- **Integration:** Stripe for cards (supports holds via Authorization API).
+- **Flow:**
+  - Booking: Pre-authorize amount (hold for 7 days post-session).
+  - Post-Session: Auto-release to creator (minus Admin cut) if no refund requested.
+  - Refunds: Client requests within 24 hours post-session; Admin reviews (chat with creator), approves/denies.
+- **Admin Cut:** Configurable (e.g., 15% of gross); auto-deducted and transferred to Admin's Stripe account.
+- **Payouts:** Weekly batched payouts to creators via Stripe Connect.
+
+### 4.5 Video Calls
+- **Integration:** Google Meet API (preferred for no-email join) or Twilio Video (custom, supports video-off).
+- **Features:**
+  - Auto-generate unique meeting link post-payment.
+  - Seamless join: No Google account needed; one-click via web link.
+  - Client options: Toggle video/mic on join.
+  - Recording: Optional creator-initiated; store securely, unlock for clients via paid add-on.
+  - Duration Enforcement: Auto-end after package time.
+- **Fallback:** Embed Google Meet iframe in a branded SLVIDEO room.
+
+### 4.6 Admin Dashboard
+- **Overview:** Dashboard with KPIs (total revenue, active creators, pending refunds).
+- **Creator Management:** List/search creators; view profiles, earnings, transactions.
+- **Transactions:** Filter by status (held, released, refunded); export CSV.
+- **Refunds:** Queue for review; notify creator/client; integrate Stripe refund API.
+- **Settings:** Global fee config, email templates, integrations toggles.
+
+### 4.7 Additional Features (Assumed for Completeness)
+- **Notifications:** Email/SMS via SendGrid/Twilio for bookings, reminders (1-hour pre-call), refunds.
+- **Analytics:** Creator dashboard: Earnings charts, booking trends (use Chart.js).
+- **Embed Widgets:** JS snippet for creators' sites: Customizable package cards, calendar picker.
+- **Recorded Content:** Upload library; sell access as one-time or subscription add-ons.
+- **Dispute Resolution:** Simple ticketing: Client submits evidence; Admin mediates.
+- **SEO/Marketing:** Public creator discovery page; shareable booking links.
+
+## 5. Non-Functional Requirements
+### 5.1 Performance
+- Page load: <2 seconds.
+- Concurrent users: Support 100 active sessions (scale via Replit deployments).
+- API response: <500ms.
+
+### 5.2 Security
+- HTTPS enforced.
+- Data encryption: At-rest (DB), in-transit (TLS).
+- PCI Compliance: Via Stripe.
+- Rate limiting: Prevent spam bookings.
+- Role-based access: RBAC via middleware.
+
+### 5.3 Usability
+- Responsive design: Mobile-first (Bootstrap/Tailwind).
+- Accessibility: WCAG 2.1 AA (alt texts, keyboard nav).
+- Multi-language: English default; extensible.
+
+### 5.4 Reliability & Scalability
+- Uptime: 99.5%.
+- Backup: Daily DB snapshots.
+- Error Handling: User-friendly messages; logging (Sentry integration).
+
+### 5.5 Data & Storage
+- **Entities (High-Level Schema):**
+  - Users (id, role, email, profile_data).
+  - Packages (id, creator_id, name, price, duration, description, images).
+  - Bookings (id, client_email, creator_id, package_id, slot_time, status: pending/held/completed/refunded, meeting_link).
+  - Transactions (id, booking_id, amount, hold_id, admin_cut).
+  - Schedules (creator_id, date, slots: array of {start, end, available}).
+  - Refunds (id, booking_id, reason, status, evidence_url).
+- Storage: MongoDB (flexible for schedules) or PostgreSQL.
+
+## 6. System Architecture Overview
+### 6.1 High-Level Components
+- **Frontend:** React app (routing via React Router; state mgmt with Redux/Context).
+- **Backend:** Node.js/Express API (endpoints: /auth, /schedules, /bookings, /admin).
+- **Database:** MongoDB Atlas (free tier for MVP).
+- **Integrations:**
+  - Payments: Stripe (Connect for payouts).
+  - Video: Google Meet API or Daily.co (simpler alternative).
+  - Notifications: Nodemailer/SendGrid.
+  - Hosting: Replit for dev; deploy to Vercel/Heroku for prod.
+- **Deployment:** Replit for prototyping; CI/CD via GitHub Actions.
+
+### 6.2 API Endpoints (Sample)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST   | /auth/register | Creator/Client signup | No |
+| GET    | /creators/:id/packages | List packages | No |
+| GET    | /creators/:id/slots | Available slots | No |
+| POST   | /bookings | Create booking & hold payment | Client token |
+| POST   | /admin/refunds/:id/approve | Process refund | Admin |
+| GET    | /admin/creators | List creators & revenues | Admin |
+
+## 7. Integrations & Dependencies
+| Integration | Purpose | Notes |
+|-------------|---------|-------|
+| **Stripe** | Payments/Holds/Payouts | API keys in env vars; handle webhooks for events. |
+| **Google Meet/Daily.co** | Video Rooms | OAuth for link generation; no-account join. |
+| **SendGrid/Twilio** | Emails/SMS | Templates for confirmations/reminders. |
+| **Cloudinary** | Image/Video Storage | For profiles/packages/recordings. |
+
+## 8. Risks & Mitigations
+- **Risk:** Payment disputes high. **Mitigation:** Clear TOS; auto-reminders.
+- **Risk:** Video integration complexity. **Mitigation:** Start with Google Meet; fallback to Zoom.
+- **Risk:** Replit limitations (e.g., no persistent storage). **Mitigation:** Use external DB/hosting early.
+
+## 9. Implementation Roadmap (MVP on Replit)
+### Phase 1 (Week 1-2): Core Auth & Profiles
+- Setup Replit project (Node/React).
+- Implement auth, profiles, basic scheduling.
+
+### Phase 2 (Week 3-4): Booking & Payments
+- Calendar UI, Stripe integration, holds.
+
+### Phase 3 (Week 5-6): Video & Admin
+- Meeting links, dashboard, refunds.
+
+### Phase 4 (Week 7): Polish & Test
+- Widgets, notifications, analytics.
+- Testing: Unit (Jest), E2E (Cypress).
+
+## 10. Appendices
+### 10.1 Glossary
+- **Hold/Pre-Auth:** Temporary card authorization without charge.
+- **Widget:** Embeddable UI component for external sites.
+
+### 10.2 Wireframes (Textual Description)
+- Creator Dashboard: Sidebar (Profile, Schedule, Earnings); main calendar/packages table.
+- Client Booking: Hero section (creator bio), package cards, slot picker, checkout modal.
+- Admin: Tabbed views (Creators, Transactions, Settings).
+
+This BRD provides a complete, actionable specification. For development, start with Phase 1 on Replit. If refinements needed (e.g., detailed ERD), provide feedback.
