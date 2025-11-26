@@ -196,19 +196,14 @@ export default function BookingPage() {
                         <CardTitle>Your Details & Payment</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="firstName">First name</Label>
-                            <Input id="firstName" placeholder="John" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="lastName">Last name</Label>
-                            <Input id="lastName" placeholder="Doe" />
-                          </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="mobile">Mobile Number *</Label>
+                          <Input id="mobile" type="tel" placeholder="+1 (555) 000-0000" data-testid="input-mobile" />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email address</Label>
-                          <Input id="email" type="email" placeholder="john@example.com" />
+                          <Label htmlFor="email">Email address <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                          <Input id="email" type="email" placeholder="john@example.com" data-testid="input-email" />
+                          <p className="text-xs text-muted-foreground">The meeting link will be sent to your email if provided</p>
                         </div>
                         
                         <Separator className="my-4" />

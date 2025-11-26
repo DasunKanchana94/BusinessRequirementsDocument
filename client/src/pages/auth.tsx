@@ -23,6 +23,8 @@ export default function AuthPage() {
     lastName: '',
     mobile: '',
     password: '',
+    loginMobile: '',
+    loginPassword: '',
     otp: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -88,6 +90,19 @@ export default function AuthPage() {
   };
 
   const handleLogin = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.loginMobile.trim()) {
+      newErrors.loginMobile = "Mobile number is required";
+    }
+    if (!formData.loginPassword) {
+      newErrors.loginPassword = "Password is required";
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     // Basic login simulation
     setIsLoading(true);
     setTimeout(() => {
@@ -186,20 +201,44 @@ export default function AuthPage() {
                       <CardHeader className="px-0 pt-0">
                         <CardTitle className="text-2xl font-display">Welcome back</CardTitle>
                         <CardDescription>
-                          Enter your email below to login to your account
+                          Enter your mobile number and password to login
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="px-0 space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" placeholder="m@example.com" />
+                          <Label htmlFor="login-mobile">Mobile Number</Label>
+                          <div className="relative">
+                            <Smartphone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                              id="login-mobile" 
+                              type="tel" 
+                              placeholder="+1 (555) 000-0000"
+                              className={`pl-9 ${errors.loginMobile ? "border-destructive" : ""}`}
+                              value={formData.loginMobile}
+                              onChange={(e) => {
+                                setFormData({...formData, loginMobile: e.target.value});
+                                setErrors({...errors, loginMobile: ""});
+                              }}
+                            />
+                          </div>
+                          {errors.loginMobile && <p className="text-xs text-destructive">{errors.loginMobile}</p>}
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="login-password">Password</Label>
                             <Link href="#" className="text-xs text-primary hover:underline">Forgot password?</Link>
                           </div>
-                          <Input id="password" type="password" />
+                          <Input 
+                            id="login-password" 
+                            type="password"
+                            className={errors.loginPassword ? "border-destructive" : ""}
+                            value={formData.loginPassword}
+                            onChange={(e) => {
+                              setFormData({...formData, loginPassword: e.target.value});
+                              setErrors({...errors, loginPassword: ""});
+                            }}
+                          />
+                          {errors.loginPassword && <p className="text-xs text-destructive">{errors.loginPassword}</p>}
                         </div>
                         <Button 
                           className="w-full" 
