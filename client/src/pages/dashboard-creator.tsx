@@ -14,10 +14,12 @@ import {
   MoreHorizontal,
   ArrowUpRight,
   Link as LinkIcon,
-  Copy
+  Copy,
+  Loader2
 } from "lucide-react";
 import { Link } from "wouter";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { useEffect, useState } from "react";
 
 // Mock Data
 const data = [
@@ -30,14 +32,49 @@ const data = [
   { name: "Sun", total: 450 },
 ];
 
-const bookings = [
-  { id: 1, client: "Sarah Jenkins", package: "Growth Strategy", time: "Today, 2:00 PM", status: "upcoming", price: "$300" },
-  { id: 2, client: "Mike Ross", package: "Marketing Audit", time: "Tomorrow, 10:00 AM", status: "upcoming", price: "$150" },
-  { id: 3, client: "Emily Chen", package: "Consultation", time: "Yesterday", status: "completed", price: "$150" },
-  { id: 4, client: "David Kim", package: "Monthly Retainer", time: "Nov 22, 2025", status: "completed", price: "$200" },
-];
+interface Booking {
+  id: string;
+  clientMobile: string;
+  clientEmail?: string;
+  scheduledAt: string;
+  duration: number;
+  status: string;
+  price: string;
+  packageId: string;
+}
 
 export default function CreatorDashboard() {
+  const [bookings, setBookings] = useState<Booking[]>([
+    { 
+      id: "b1", 
+      clientMobile: "+1 (555) 123-4567", 
+      clientEmail: "sarah@example.com",
+      packageId: "pkg1",
+      scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+      duration: 60, 
+      status: "upcoming", 
+      price: "$300" 
+    },
+    { 
+      id: "b2", 
+      clientMobile: "+1 (555) 234-5678",
+      packageId: "pkg2", 
+      scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      duration: 30, 
+      status: "upcoming", 
+      price: "$150" 
+    },
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // In production, fetch real bookings from API
+    // setIsLoading(true);
+    // fetch('/api/bookings/creator/[userId]')
+    //   .then(r => r.json())
+    //   .then(data => setBookings(data))
+    //   .finally(() => setIsLoading(false));
+  }, []);
   return (
     <Layout>
       <div className="flex min-h-[calc(100vh-4rem)] bg-muted/30">
@@ -206,32 +243,47 @@ export default function CreatorDashboard() {
                    <CardDescription>You have 2 sessions today.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {bookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-2 h-2 rounded-full ${booking.status === 'upcoming' ? 'bg-green-500' : 'bg-gray-300'}`} />
-                          <div>
-                            <p className="font-medium text-sm leading-none">{booking.client}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{booking.time}</p>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {bookings.map((booking) => (
+                        <div key={booking.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-2 h-2 rounded-full ${booking.status === 'upcoming' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                            <div>
+                              <p className="font-medium text-sm leading-none">{booking.clientMobile}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(booking.scheduledAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium">{booking.price}</span>
+                            {booking.status === 'upcoming' ? (
+                              <Link href={`/meeting/${booking.id}`}>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 text-primary"
+                                  data-testid={`button-join-${booking.id}`}
+                                >
+                                  <Video size={16} />
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
+                                <MoreHorizontal size={16} />
+                              </Button>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium">{booking.price}</span>
-                          {booking.status === 'upcoming' ? (
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-primary">
-                              <Video size={16} />
-                            </Button>
-                          ) : (
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground">
-                              <MoreHorizontal size={16} />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button variant="outline" className="w-full mt-6">View All Bookings</Button>
+                      ))}
+                    </div>
+                  )}
+                  <Button variant="outline" className="w-full mt-6" data-testid="button-view-all">View All Bookings</Button>
                 </CardContent>
               </Card>
             </div>

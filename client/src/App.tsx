@@ -11,6 +11,7 @@ import CreatorDashboard from "@/pages/dashboard-creator";
 import AdminDashboard from "@/pages/dashboard-admin";
 import CreatorSettings from "@/pages/creator-settings";
 import CreatorPayouts from "@/pages/creator-payouts";
+import MeetingPage from "@/pages/meeting";
 import AuthPage from "@/pages/auth";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/creators/:slug" component={CreatorProfile} />
       <Route path="/creators" component={Home} /> {/* Fallback/Demo */}
       <Route path="/booking/:creator/:packageId" component={BookingPage} />
+      <Route path="/meeting/:bookingId" component={MeetingPage} />
       <Route path="/creator/dashboard" component={CreatorDashboard} />
       <Route path="/creator/settings" component={CreatorSettings} />
       <Route path="/creator/payouts" component={CreatorPayouts} />
