@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Video, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Video, ArrowRight, Loader2, CheckCircle2, Smartphone, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,12 +16,82 @@ export default function AuthPage() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const handleAuth = (type: 'login' | 'register') => {
+  // Form State
+  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    mobile: '',
+    password: '',
+    otp: ''
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    const mobileRegex = /^\+?[1-9]\d{1,14}$/; // Basic E.164 format check
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
+
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!mobileRegex.test(formData.mobile.replace(/[\s-]/g, ''))) {
+      newErrors.mobile = "Please enter a valid mobile number";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (!passwordRegex.test(formData.password)) {
+      newErrors.password = "Password must contain at least 1 uppercase, 1 lowercase and 1 number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleRegister = () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    // Simulate API call to send OTP
+    setTimeout(() => {
+      setIsLoading(false);
+      setStep('otp');
+      toast({
+        title: "OTP Sent",
+        description: `We sent a verification code to ${formData.mobile}`,
+      });
+    }, 1500);
+  };
+
+  const handleVerifyOtp = () => {
+    if (formData.otp.length !== 6) {
+      setErrors({ otp: "Please enter a valid 6-digit code" });
+      return;
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
       toast({
-        title: type === 'login' ? "Welcome back!" : "Account created!",
+        title: "Account Verified!",
+        description: "Redirecting to your dashboard...",
+      });
+      setLocation("/creator/dashboard");
+    }, 1500);
+  };
+
+  const handleLogin = () => {
+    // Basic login simulation
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      toast({
+        title: "Welcome back!",
         description: "Redirecting to your dashboard...",
       });
       setLocation("/creator/dashboard");
@@ -91,133 +162,194 @@ export default function AuthPage() {
              </div>
           </div>
 
-          <Tabs defaultValue="register" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="register">Create Account</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
+          <AnimatePresence mode="wait">
+            {step === 'form' ? (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                key="auth-forms"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Tabs defaultValue="register" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-8">
+                    <TabsTrigger value="login">Sign In</TabsTrigger>
+                    <TabsTrigger value="register">Create Account</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="login">
+                    <Card className="border-none shadow-none">
+                      <CardHeader className="px-0 pt-0">
+                        <CardTitle className="text-2xl font-display">Welcome back</CardTitle>
+                        <CardDescription>
+                          Enter your email below to login to your account
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="px-0 space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" type="email" placeholder="m@example.com" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="password">Password</Label>
+                            <Link href="#" className="text-xs text-primary hover:underline">Forgot password?</Link>
+                          </div>
+                          <Input id="password" type="password" />
+                        </div>
+                        <Button 
+                          className="w-full" 
+                          size="lg" 
+                          onClick={handleLogin}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                          Sign In
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="register">
+                    <Card className="border-none shadow-none">
+                      <CardHeader className="px-0 pt-0">
+                        <CardTitle className="text-2xl font-display">Create an account</CardTitle>
+                        <CardDescription>
+                          Start monetizing your time in less than 2 minutes.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="px-0 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="first-name">First name</Label>
+                            <Input 
+                              id="first-name" 
+                              placeholder="Alex" 
+                              value={formData.firstName}
+                              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                              className={errors.firstName ? "border-destructive" : ""}
+                            />
+                            {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="last-name">Last name</Label>
+                            <Input 
+                              id="last-name" 
+                              placeholder="Doe" 
+                              value={formData.lastName}
+                              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                              className={errors.lastName ? "border-destructive" : ""}
+                            />
+                            {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="mobile">Mobile Number</Label>
+                          <div className="relative">
+                             <Smartphone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                             <Input 
+                               id="mobile" 
+                               type="tel" 
+                               placeholder="+1 (555) 000-0000" 
+                               className={`pl-9 ${errors.mobile ? "border-destructive" : ""}`}
+                               value={formData.mobile}
+                               onChange={(e) => setFormData({...formData, mobile: e.target.value})}
+                             />
+                          </div>
+                          {errors.mobile && <p className="text-xs text-destructive">{errors.mobile}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="register-password">Password</Label>
+                          <Input 
+                            id="register-password" 
+                            type="password" 
+                            className={errors.password ? "border-destructive" : ""}
+                            value={formData.password}
+                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          />
+                          {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                          <p className="text-xs text-muted-foreground">Must contain 1 uppercase, 1 lowercase, and 1 number.</p>
+                        </div>
+
+                        <Button 
+                          className="w-full" 
+                          size="lg" 
+                          onClick={handleRegister}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                          Create Account <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="otp-verification"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
               >
                 <Card className="border-none shadow-none">
                   <CardHeader className="px-0 pt-0">
-                    <CardTitle className="text-2xl font-display">Welcome back</CardTitle>
+                    <Button 
+                      variant="ghost" 
+                      className="mb-4 pl-0 hover:bg-transparent w-fit" 
+                      onClick={() => setStep('form')}
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                    </Button>
+                    <CardTitle className="text-2xl font-display">Verify Mobile Number</CardTitle>
                     <CardDescription>
-                      Enter your email below to login to your account
+                      Enter the 6-digit code sent to <strong>{formData.mobile}</strong>
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="px-0 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="m@example.com" />
+                  <CardContent className="px-0 space-y-6">
+                    <div className="flex justify-center">
+                      <InputOTP 
+                        maxLength={6} 
+                        value={formData.otp}
+                        onChange={(value) => setFormData({...formData, otp: value})}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                        </InputOTPGroup>
+                        <div className="w-4" /> {/* Spacer */}
+                        <InputOTPGroup>
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Password</Label>
-                        <Link href="#" className="text-xs text-primary hover:underline">Forgot password?</Link>
-                      </div>
-                      <Input id="password" type="password" />
-                    </div>
+                    
+                    {errors.otp && <p className="text-center text-sm text-destructive">{errors.otp}</p>}
+
                     <Button 
                       className="w-full" 
                       size="lg" 
-                      onClick={() => handleAuth('login')}
-                      disabled={isLoading}
+                      onClick={handleVerifyOtp}
+                      disabled={isLoading || formData.otp.length !== 6}
                     >
                       {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Sign In
+                      Verify & Continue
                     </Button>
                     
-                    <div className="relative my-6">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Or continue with
-                        </span>
-                      </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full" type="button" disabled={isLoading}>
-                      <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                      </svg>
-                      Google
-                    </Button>
+                    <p className="text-center text-sm text-muted-foreground">
+                      Didn't receive code? <button className="text-primary hover:underline font-medium" onClick={() => toast({title: "Code Resent", description: "Please check your messages."})}>Resend</button>
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>
-            </TabsContent>
-            
-            <TabsContent value="register">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="border-none shadow-none">
-                  <CardHeader className="px-0 pt-0">
-                    <CardTitle className="text-2xl font-display">Create an account</CardTitle>
-                    <CardDescription>
-                      Start monetizing your time in less than 2 minutes.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="px-0 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="first-name">First name</Label>
-                        <Input id="first-name" placeholder="Alex" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="last-name">Last name</Label>
-                        <Input id="last-name" placeholder="Doe" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <Input id="register-email" type="email" placeholder="m@example.com" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-password">Password</Label>
-                      <Input id="register-password" type="password" />
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      size="lg" 
-                      onClick={() => handleAuth('register')}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Create Account <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                    
-                    <div className="relative my-6">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Or continue with
-                        </span>
-                      </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full" type="button" disabled={isLoading}>
-                      <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                      </svg>
-                      Google
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-          </Tabs>
+            )}
+          </AnimatePresence>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
             By clicking continue, you agree to our <br/>
