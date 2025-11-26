@@ -55,24 +55,30 @@ export default function CreatorDashboard() {
              </div>
              
              <nav className="space-y-1">
-               <Button variant="secondary" className="w-full justify-start font-medium">
-                 <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
-               </Button>
+               <Link href="/creator/dashboard">
+                 <Button variant="secondary" className="w-full justify-start font-medium">
+                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                 </Button>
+               </Link>
                <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
                  <Calendar className="mr-2 h-4 w-4" /> Schedule
                </Button>
                <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
                  <Video className="mr-2 h-4 w-4" /> Bookings
                </Button>
-               <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
-                 <DollarSign className="mr-2 h-4 w-4" /> Earnings
-               </Button>
+               <Link href="/creator/payouts">
+                 <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
+                   <DollarSign className="mr-2 h-4 w-4" /> Earnings & Payouts
+                 </Button>
+               </Link>
                <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
                  <Users className="mr-2 h-4 w-4" /> Clients
                </Button>
-               <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
-                 <Settings className="mr-2 h-4 w-4" /> Settings
-               </Button>
+               <Link href="/creator/settings">
+                 <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground">
+                   <Settings className="mr-2 h-4 w-4" /> Settings
+                 </Button>
+               </Link>
              </nav>
           </div>
           

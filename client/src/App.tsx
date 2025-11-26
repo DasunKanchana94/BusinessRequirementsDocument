@@ -9,6 +9,8 @@ import CreatorProfile from "@/pages/creator-profile";
 import BookingPage from "@/pages/booking";
 import CreatorDashboard from "@/pages/dashboard-creator";
 import AdminDashboard from "@/pages/dashboard-admin";
+import CreatorSettings from "@/pages/creator-settings";
+import CreatorPayouts from "@/pages/creator-payouts";
 
 function Router() {
   return (
@@ -18,6 +20,8 @@ function Router() {
       <Route path="/creators" component={Home} /> {/* Fallback/Demo */}
       <Route path="/booking/:creator/:packageId" component={BookingPage} />
       <Route path="/creator/dashboard" component={CreatorDashboard} />
+      <Route path="/creator/settings" component={CreatorSettings} />
+      <Route path="/creator/payouts" component={CreatorPayouts} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
