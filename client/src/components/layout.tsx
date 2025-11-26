@@ -35,12 +35,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </span>
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/creator/dashboard">
+              <Link href="/auth">
                 <Button variant="ghost" size="sm" className="text-muted-foreground">
                   Log in
                 </Button>
               </Link>
-              <Link href="/creator/dashboard">
+              <Link href="/auth">
                 <Button size="sm" className="font-semibold shadow-lg shadow-primary/20">
                   Get Started
                 </Button>
@@ -65,10 +65,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <span className="text-lg font-medium">Admin Demo</span>
                   </Link>
                   <div className="h-px bg-border my-2" />
-                  <Link href="/creator/dashboard" onClick={() => setIsOpen(false)}>
+                  <Link href="/auth" onClick={() => setIsOpen(false)}>
                     <Button variant="outline" className="w-full justify-start">Log in</Button>
                   </Link>
-                  <Link href="/creator/dashboard" onClick={() => setIsOpen(false)}>
+                  <Link href="/auth" onClick={() => setIsOpen(false)}>
                     <Button className="w-full justify-start">Get Started</Button>
                   </Link>
                 </div>

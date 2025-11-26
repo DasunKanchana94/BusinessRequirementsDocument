@@ -41,7 +41,7 @@ export default function Home() {
                 The all-in-one platform for creators to schedule, book, and conduct paid video consultations with zero friction.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/creator/dashboard">
+                <Link href="/auth">
                   <Button size="lg" className="h-14 px-8 text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
                     Start Earning Today
                   </Button>
@@ -209,7 +209,7 @@ export default function Home() {
           <p className="text-primary-foreground/80 text-xl max-w-2xl mx-auto mb-10">
             Join thousands of experts earning on SLVIDEO. Set up your profile in less than 5 minutes.
           </p>
-          <Link href="/creator/dashboard">
+          <Link href="/auth">
             <Button size="lg" variant="secondary" className="h-14 px-10 text-base font-bold shadow-xl">
               Create Free Account
             </Button>

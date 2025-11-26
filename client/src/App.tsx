@@ -11,11 +11,13 @@ import CreatorDashboard from "@/pages/dashboard-creator";
 import AdminDashboard from "@/pages/dashboard-admin";
 import CreatorSettings from "@/pages/creator-settings";
 import CreatorPayouts from "@/pages/creator-payouts";
+import AuthPage from "@/pages/auth";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/creators/:slug" component={CreatorProfile} />
       <Route path="/creators" component={Home} /> {/* Fallback/Demo */}
       <Route path="/booking/:creator/:packageId" component={BookingPage} />
