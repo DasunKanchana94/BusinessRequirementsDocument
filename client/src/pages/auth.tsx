@@ -77,6 +77,8 @@ export default function AuthPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      // Set simple auth flag in local storage for mockup purposes
+      localStorage.setItem('isLoggedIn', 'true');
       toast({
         title: "Account Verified!",
         description: "Redirecting to your dashboard...",
@@ -90,6 +92,8 @@ export default function AuthPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      // Set simple auth flag in local storage for mockup purposes
+      localStorage.setItem('isLoggedIn', 'true');
       toast({
         title: "Welcome back!",
         description: "Redirecting to your dashboard...",

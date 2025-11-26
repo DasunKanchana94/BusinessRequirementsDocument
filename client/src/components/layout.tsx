@@ -1,11 +1,32 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Video, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Video, Menu, X, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [location, setLocation] = useLocation();
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const auth = localStorage.getItem('isLoggedIn');
+      setIsLoggedIn(auth === 'true');
+    };
+    
+    checkAuth();
+    // Add event listener for storage changes (in case login happens in another tab/component)
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [location]); // Re-check on route change
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+    setLocation('/');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans text-foreground">
@@ -35,16 +56,37 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </span>
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/auth">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  Log in
-                </Button>
-              </Link>
-              <Link href="/auth">
-                <Button size="sm" className="font-semibold shadow-lg shadow-primary/20">
-                  Get Started
-                </Button>
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link href="/creator/dashboard">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground">
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground">
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link href="/auth">
+                    <Button size="sm" className="font-semibold shadow-lg shadow-primary/20">
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
 
@@ -65,12 +107,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <span className="text-lg font-medium">Admin Demo</span>
                   </Link>
                   <div className="h-px bg-border my-2" />
-                  <Link href="/auth" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start">Log in</Button>
-                  </Link>
-                  <Link href="/auth" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full justify-start">Get Started</Button>
-                  </Link>
+                  {isLoggedIn ? (
+                    <>
+                      <Link href="/creator/dashboard" onClick={() => setIsOpen(false)}>
+                        <Button variant="secondary" className="w-full justify-start">Dashboard</Button>
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start text-destructive border-destructive/20"
+                        onClick={() => {
+                          handleLogout();
+                          setIsOpen(false);
+                        }}
+                      >
+                        Log out
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/auth" onClick={() => setIsOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start">Log in</Button>
+                      </Link>
+                      <Link href="/auth" onClick={() => setIsOpen(false)}>
+                        <Button className="w-full justify-start">Get Started</Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
