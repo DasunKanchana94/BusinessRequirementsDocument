@@ -107,6 +107,23 @@ export default function CreatorDashboard() {
 
   const upcomingCount = upcomingSessions.length;
 
+  // Calculate today's stats
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const todaysBookings = bookings.filter(b => {
+    const bookingDate = new Date(b.scheduledAt);
+    bookingDate.setHours(0, 0, 0, 0);
+    return bookingDate.getTime() === today.getTime();
+  });
+
+  const todaysRevenue = todaysBookings.reduce((sum, b) => {
+    const amount = parseFloat(b.price.replace('$', ''));
+    return sum + amount;
+  }, 0);
+
   useEffect(() => {
     // In production, fetch real bookings from API
     // setIsLoading(true);
@@ -189,25 +206,25 @@ export default function CreatorDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$4,231.89</div>
-                <p className="text-xs text-green-500 flex items-center mt-1">
-                  <ArrowUpRight size={12} className="mr-1" /> +20.1% from last month
+                <div className="text-2xl font-bold text-green-600">${todaysRevenue.toFixed(2)}</div>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <ArrowUpRight size={12} className="mr-1" /> Today's earnings
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Bookings</CardTitle>
+                <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
                 <Video className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+24</div>
-                <p className="text-xs text-green-500 flex items-center mt-1">
-                  <ArrowUpRight size={12} className="mr-1" /> +12% from last month
+                <div className="text-2xl font-bold">{todaysBookings.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sessions scheduled today
                 </p>
               </CardContent>
             </Card>
