@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -15,7 +17,8 @@ import {
   ArrowUpRight,
   Link as LinkIcon,
   Copy,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
 import { Link } from "wouter";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -64,8 +67,45 @@ export default function CreatorDashboard() {
       status: "upcoming", 
       price: "$150" 
     },
+    { 
+      id: "b3", 
+      clientMobile: "+1 (555) 345-6789",
+      clientEmail: "john@example.com",
+      packageId: "pkg1",
+      scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      duration: 45, 
+      status: "upcoming", 
+      price: "$250" 
+    },
+    { 
+      id: "b4", 
+      clientMobile: "+1 (555) 456-7890",
+      packageId: "pkg3",
+      scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      duration: 60, 
+      status: "upcoming", 
+      price: "$400" 
+    },
+    { 
+      id: "b5", 
+      clientMobile: "+1 (555) 567-8901",
+      clientEmail: "emma@example.com",
+      packageId: "pkg2",
+      scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      duration: 30, 
+      status: "upcoming", 
+      price: "$150" 
+    },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [upcomingDialogOpen, setUpcomingDialogOpen] = useState(false);
+
+  const upcomingSessions = bookings
+    .filter(b => b.status === 'upcoming')
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+    .slice(0, 10);
+
+  const upcomingCount = upcomingSessions.length;
 
   useEffect(() => {
     // In production, fetch real bookings from API
@@ -171,15 +211,19 @@ export default function CreatorDashboard() {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow" 
+              onClick={() => setUpcomingDialogOpen(true)}
+              data-testid="card-upcoming"
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">7</div>
+                <div className="text-2xl font-bold">{upcomingCount}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Sessions this week
+                  Click to view sessions
                 </p>
               </CardContent>
             </Card>
@@ -290,6 +334,67 @@ export default function CreatorDashboard() {
           </div>
         </main>
       </div>
+
+      {/* Upcoming Sessions Dialog */}
+      <Dialog open={upcomingDialogOpen} onOpenChange={setUpcomingDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]" data-testid="dialog-upcoming-sessions">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Upcoming Sessions</DialogTitle>
+            <DialogDescription>
+              You have {upcomingCount} upcoming sessions. Click "Join" to start a session.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[500px] pr-4">
+            <div className="space-y-3">
+              {upcomingSessions.length > 0 ? (
+                upcomingSessions.map((session) => (
+                  <div 
+                    key={session.id}
+                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                    data-testid={`session-item-${session.id}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        <p className="font-medium text-sm">{session.clientMobile}</p>
+                        {session.clientEmail && (
+                          <span className="text-xs text-muted-foreground">({session.clientEmail})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {new Date(session.scheduledAt).toLocaleString()}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock size={14} />
+                          {session.duration} min
+                        </div>
+                        <div className="font-medium text-foreground">{session.price}</div>
+                      </div>
+                    </div>
+                    <Link href={`/meeting/${session.id}`}>
+                      <Button 
+                        size="sm"
+                        className="ml-4"
+                        data-testid={`button-join-session-${session.id}`}
+                      >
+                        <Video size={14} className="mr-1" />
+                        Join
+                      </Button>
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                  <p>No upcoming sessions</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
