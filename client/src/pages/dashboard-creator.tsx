@@ -107,11 +107,23 @@ export default function CreatorDashboard() {
 
   const upcomingCount = upcomingSessions.length;
 
+  // Calculate this month's revenue
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const thisMonthRevenue = bookings.reduce((sum, b) => {
+    const bookingDate = new Date(b.scheduledAt);
+    if (bookingDate >= monthStart && bookingDate <= monthEnd) {
+      const amount = parseFloat(b.price.replace('$', ''));
+      return sum + amount;
+    }
+    return sum;
+  }, 0);
+
   // Calculate today's stats
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
 
   const todaysBookings = bookings.filter(b => {
     const bookingDate = new Date(b.scheduledAt);
@@ -206,13 +218,13 @@ export default function CreatorDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-green-600" />
+                <CardTitle className="text-sm font-medium">This Month's Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">${todaysRevenue.toFixed(2)}</div>
-                <p className="text-xs text-green-600 flex items-center mt-1">
-                  <ArrowUpRight size={12} className="mr-1" /> Today's earnings
+                <div className="text-2xl font-bold">${thisMonthRevenue.toFixed(2)}</div>
+                <p className="text-xs text-green-500 flex items-center mt-1">
+                  <ArrowUpRight size={12} className="mr-1" /> Month revenue
                 </p>
               </CardContent>
             </Card>
@@ -224,7 +236,7 @@ export default function CreatorDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{todaysBookings.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Sessions scheduled today
+                  ${todaysRevenue.toFixed(2)} today
                 </p>
               </CardContent>
             </Card>
